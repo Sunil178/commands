@@ -1,0 +1,74 @@
+sudo ln -s /usr/bin/python3 /usr/bin/python
+sudo ln -s /system/bin/su /data/local/su
+
+sudo cp /system/bin/su /data/local/su
+sudo mv /system/bin/su /data/local/su
+
+sudo cp /data/local/su /system/bin/
+sudo mv /data/local/su /system/bin/
+
+mount -o rw,remount /system
+
+geny_adb shell "mkdir /data/local/proxy"
+geny_adb push .\redsocks /data/local/proxy
+geny_adb push .\redsocks.conf /data/local/proxy
+geny_adb push .\redsocks.pid /data/local/proxy
+geny_adb push .\proxy.sh /data/local/proxy
+geny_adb push .\cntlm /data/local/proxy
+geny_adb push .\gost /data/local/proxy
+geny_adb push .\gost.sh /data/local/proxy
+
+
+geny_adb shell "chmod 700 /data/local/proxy/redsocks"
+geny_adb shell "chmod 700 /data/local/proxy/proxy.sh"
+geny_adb shell "chmod 700 /data/local/proxy/gost.sh"
+geny_adb shell "chmod 700 /data/local/proxy/cntlm"
+geny_adb shell "chmod 700 /data/local/proxy/gost"
+
+chmod 700 /data/user/0/org.proxydroid/files/redsocks
+chmod 700 /data/user/0/org.proxydroid/files/proxy.sh
+chmod 700 /data/user/0/org.proxydroid/files/gost.sh
+chmod 700 /data/user/0/org.proxydroid/files/cntlm
+chmod 700 /data/user/0/org.proxydroid/files/gost
+
+
+
+geny_adb shell "sh ./data/local/proxy/proxy.sh /data/local/proxy start http 52.66.202.60 4104 false"
+
+geny_adb shell "iptables -t nat -A OUTPUT -p tcp -d 52.66.202.60 -j RETURN"
+
+geny_adb shell "iptables -t nat -A OUTPUT -p tcp --dport 80 -j REDIRECT --to 8123"
+
+geny_adb shell "iptables -t nat -A OUTPUT -p tcp --dport 443 -j REDIRECT --to 8124"
+
+geny_adb shell "iptables -t nat -A OUTPUT -p tcp --dport 5228 -j REDIRECT --to 8124"
+
+
+nox_adb shell "sh ./data/user/0/org.proxydroid/files/proxy.sh /data/user/0/org.proxydroid/files start http 52.66.202.60 4104 false"
+
+nox_adb shell "iptables -t nat -A OUTPUT -p tcp -d 52.66.202.60 -j RETURN"
+
+nox_adb shell "iptables -t nat -A OUTPUT -p tcp --dport 80 -j REDIRECT --to 8123"
+
+nox_adb shell "iptables -t nat -A OUTPUT -p tcp --dport 443 -j REDIRECT --to 8124"
+
+nox_adb shell "iptables -t nat -A OUTPUT -p tcp --dport 5228 -j REDIRECT --to 8124"
+
+
+
+
+
+
+nox_adb shell "sh ./data/user/0/org.proxydroid/files/proxy.sh /data/user/0/org.proxydroid/files start http 52.66.202.60 4104 false"
+
+nox_adb shell "iptables -t nat -A OUTPUT -p tcp --dport 80 -j DNAT --to-destination 127.0.0.1:8123"
+
+nox_adb shell "iptables -t nat -A OUTPUT -p tcp --dport 443 -j DNAT --to-destination 127.0.0.1:8124"
+
+nox_adb shell "iptables -t nat -A OUTPUT -p tcp --dport 5228 -j DNAT --to-destination 127.0.0.1:8124"
+
+
+
+To clear iptables
+geny_adb shell "iptables -t filter -F"
+geny_adb shell "sudo iptables -t filter -X"
